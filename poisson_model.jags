@@ -1,0 +1,30 @@
+
+model {
+  # Likelihood
+  for (i in 1:N) {
+    deaths[i] ~ dpois(lambda[i])
+    log(lambda[i]) <- log_person_years[i] + beta0 + beta_age[age[i]] + beta_smoke[smoke[i]]
+  }
+  
+  # Priors
+  beta0 ~ dnorm(0, 0.0001)
+  
+  beta_age[1] <- 0  # Reference: <45
+  for (j in 2:N_age) {
+    beta_age[j] ~ dnorm(0, tau_age)
+  }
+  
+  beta_smoke[1] <- 0  # Reference: Never smoker
+  for (k in 2:N_smoke) {
+    beta_smoke[k] ~ dnorm(0, tau_smoke)
+  }
+  
+  # Hyperpriors for precisions
+  tau_age ~ dgamma(0.001, 0.001)
+  tau_smoke ~ dgamma(0.001, 0.001)
+  
+  # Convert precision to standard deviation
+  sigma_age <- 1 / sqrt(tau_age)
+  sigma_smoke <- 1 / sqrt(tau_smoke)
+}
+
